@@ -20,10 +20,12 @@ const profileRoutes = require('./src/routes/profileRoutes');
 
 const app = express();
 
-// Security & CORS Configuration
-const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+// Security & CORS Configuration - Dynamic Origin Support for Render Hosted Frontend & Local
 app.use(cors({
-  origin: [clientUrl, 'http://localhost:3000', 'http://localhost:5173'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile, curl) or any domain (Render frontend, custom domains, localhost)
+    return callback(null, true);
+  },
   credentials: true
 }));
 

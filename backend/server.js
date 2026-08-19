@@ -3,10 +3,14 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/db');
 const { configureCloudinary } = require('./src/config/cloudinary');
+const seedAdminUser = require('./src/config/adminSeed');
+
+const authRoutes = require('./src/routes/authRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
 
 const app = express();
 
-// Security & Middleware Configuration
+// Security & CORS Configuration
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 app.use(cors({
   origin: [clientUrl, 'http://localhost:3000', 'http://localhost:5173'],
@@ -16,9 +20,17 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Services
-connectDB();
+// Initialize Database & Services
+connectDB().then((connected) => {
+  if (connected) {
+    seedAdminUser();
+  }
+});
 configureCloudinary();
+
+// API Routes Registration
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

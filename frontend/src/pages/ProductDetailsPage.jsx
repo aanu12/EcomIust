@@ -98,6 +98,9 @@ const ProductDetailsPage = () => {
   const images = product.images && product.images.length > 0 ? product.images : [{ url: 'https://via.placeholder.com/600' }];
   const currentImage = images[selectedImageIndex] || images[0];
 
+  const sellerId = product.seller ? (typeof product.seller === 'object' ? product.seller._id : product.seller) : null;
+  const isOwnProduct = user && sellerId && sellerId.toString() === user._id.toString();
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? '80px' : '2rem' }}>
       <Navbar />
@@ -142,14 +145,20 @@ const ProductDetailsPage = () => {
 
             {/* Desktop Action Buttons */}
             {!isMobile && (
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={handleAddToCart} disabled={addingToCart} style={{ flex: 1, backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.875rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                  {addingToCart ? 'Adding...' : 'Add to Cart 🛒'}
-                </button>
-                <button onClick={handleBuyNow} style={{ flex: 1, backgroundColor: '#007aff', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.875rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
-                  Buy Now ⚡
-                </button>
-              </div>
+              isOwnProduct ? (
+                <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '0.875rem 1.25rem', textAlign: 'center', color: '#b45309', fontWeight: 700, fontSize: '0.9375rem' }}>
+                  ℹ️ You are the seller of this item (Cannot purchase own product)
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button onClick={handleAddToCart} disabled={addingToCart} style={{ flex: 1, backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.875rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                    {addingToCart ? 'Adding...' : 'Add to Cart 🛒'}
+                  </button>
+                  <button onClick={handleBuyNow} style={{ flex: 1, backgroundColor: '#007aff', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.875rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' }}>
+                    Buy Now ⚡
+                  </button>
+                </div>
+              )
             )}
 
             {/* Description */}
@@ -204,12 +213,20 @@ const ProductDetailsPage = () => {
             zIndex: 999
           }}
         >
-          <button onClick={handleAddToCart} disabled={addingToCart} style={{ flex: 1, backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer' }}>
-            {addingToCart ? 'Adding...' : 'Add to Cart'}
-          </button>
-          <button onClick={handleBuyNow} style={{ flex: 1, backgroundColor: '#007aff', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer' }}>
-            Buy Now
-          </button>
+          {isOwnProduct ? (
+            <div style={{ flex: 1, backgroundColor: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: '12px', padding: '0.75rem', textAlign: 'center', fontWeight: 700, fontSize: '0.875rem' }}>
+              ℹ️ You are the seller of this item
+            </div>
+          ) : (
+            <>
+              <button onClick={handleAddToCart} disabled={addingToCart} style={{ flex: 1, backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer' }}>
+                {addingToCart ? 'Adding...' : 'Add to Cart'}
+              </button>
+              <button onClick={handleBuyNow} style={{ flex: 1, backgroundColor: '#007aff', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '0.75rem', fontWeight: 700, fontSize: '0.9375rem', cursor: 'pointer' }}>
+                Buy Now
+              </button>
+            </>
+          )}
         </div>
       )}
 

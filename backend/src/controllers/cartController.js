@@ -61,6 +61,15 @@ const addToCart = async (req, res, next) => {
       });
     }
 
+    // Prevent seller from adding/purchasing their own product
+    const sellerId = product.seller._id ? product.seller._id.toString() : product.seller.toString();
+    if (sellerId === req.user._id.toString()) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You cannot purchase your own product listing.'
+      });
+    }
+
     let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) {
       cart = new Cart({ user: req.user._id, items: [] });

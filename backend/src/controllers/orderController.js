@@ -40,6 +40,15 @@ const createCheckoutSession = async (req, res, next) => {
         });
       }
 
+      // Prevent seller from buying their own product listing
+      const sellerId = item.product.seller._id ? item.product.seller._id.toString() : item.product.seller.toString();
+      if (sellerId === req.user._id.toString()) {
+        return res.status(400).json({
+          status: 'fail',
+          message: `You cannot purchase your own product listing "${item.product.name}".`
+        });
+      }
+
       const itemTotal = item.product.price * item.quantity;
       calculatedSubtotal += itemTotal;
 

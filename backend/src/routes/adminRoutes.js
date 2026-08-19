@@ -5,6 +5,7 @@ const {
   approveUser,
   rejectUser,
   updateUser,
+  deleteUser,
   createUser,
   sendCredentialEmail
 } = require('../controllers/adminController');
@@ -18,6 +19,7 @@ router.post('/users/create', createUser);
 router.put('/users/:id/approve', approveUser);
 router.put('/users/:id/reject', rejectUser);
 router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 router.post('/users/:id/send-email', sendCredentialEmail);
 
 module.exports = router;

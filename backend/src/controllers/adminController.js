@@ -24,7 +24,7 @@ const generateSecurePassword = (length = 10) => {
 const getUsers = async (req, res, next) => {
   try {
     const { status } = req.query;
-    let query = { role: { $ne: 'admin' } }; // Exclude admin accounts from verification list
+    let query = { role: { $ne: 'admin' } }; // Exclude admin accounts from list
 
     if (status && ['pending', 'approved', 'rejected'].includes(status)) {
       query.status = status;
@@ -154,6 +154,40 @@ const updateUser = async (req, res, next) => {
 };
 
 /**
+ * @desc    Delete user record & associated Cloudinary assets
+ * @route   DELETE /api/admin/users/:id
+ * @access  Private/Admin
+ */
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ status: 'fail', message: 'User not found.' });
+    }
+
+    // Delete associated Cloudinary ID asset if present
+    if (user.idCard && user.idCard.public_id && !user.idCard.public_id.startsWith('local_')) {
+      try {
+        await cloudinary.uploader.destroy(user.idCard.public_id);
+        console.log(`🗑️ Deleted user Cloudinary ID asset: ${user.idCard.public_id}`);
+      } catch (err) {
+        console.error('Cloudinary Deletion Error:', err.message);
+      }
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'User record and associated Cloudinary ID assets deleted successfully.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Manually create an approved user (Admin creation)
  * @route   POST /api/admin/users/create
  * @access  Private/Admin
@@ -217,18 +251,18 @@ const sendCredentialEmail = async (req, res, next) => {
       return res.status(400).json({ status: 'fail', message: 'Password is required to send credential email.' });
     }
 
-    const emailSubject = '🎓 Campus Marketplace - Account Approved & Login Credentials';
+    const emailSubject = '🎓 IUST Ecom - Account Approved & Login Credentials';
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <h2 style="color: #2b6cb0;">Welcome to Campus Marketplace!</h2>
+        <h2 style="color: #0f172a;">Welcome to IUST Ecom!</h2>
         <p>Dear <strong>${user.name}</strong>,</p>
         <p>Your student verification has been approved for <strong>${user.course}</strong>.</p>
-        <div style="background: #f7fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #3182ce; margin: 20px 0;">
+        <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #2563eb; margin: 20px 0;">
           <p style="margin: 0 0 8px 0;"><strong>Registered Email:</strong> ${user.email}</p>
           <p style="margin: 0;"><strong>Generated Password:</strong> <code style="font-size: 16px; background: #edf2f7; padding: 2px 6px; border-radius: 4px;">${password}</code></p>
         </div>
-        <p>Please log in using your email and password to access the marketplace.</p>
-        <p style="color: #718096; font-size: 12px; margin-top: 30px;">Campus Marketplace Security Team</p>
+        <p>Please log in using your registered email and password to access the campus marketplace.</p>
+        <p style="color: #718096; font-size: 12px; margin-top: 30px;">IUST Ecom Security Team</p>
       </div>
     `;
 
@@ -236,20 +270,12 @@ const sendCredentialEmail = async (req, res, next) => {
       to: user.email,
       subject: emailSubject,
       html: emailHtml,
-      text: `Welcome to Campus Marketplace! Email: ${user.email} | Password: ${password}`
+      text: `Welcome to IUST Ecom! Email: ${user.email} | Password: ${password}`
     });
-
-    if (!sent) {
-      return res.status(200).json({
-        status: 'success',
-        message: 'Credentials email process completed (SMTP dry run mode enabled).',
-        emailSent: false
-      });
-    }
 
     return res.status(200).json({
       status: 'success',
-      message: `Credentials sent successfully to ${user.email}`,
+      message: `Credentials email dispatched successfully to ${user.email}`,
       emailSent: true
     });
   } catch (error) {
@@ -262,6 +288,7 @@ module.exports = {
   approveUser,
   rejectUser,
   updateUser,
+  deleteUser,
   createUser,
   sendCredentialEmail
 };

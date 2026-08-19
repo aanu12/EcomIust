@@ -25,7 +25,7 @@ const EditUserModal = ({ isOpen, user, onClose, onSave }) => {
     e.preventDefault();
     setError(null);
 
-    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
     if (!formData.name.trim() || !formData.course.trim() || !formData.email.trim()) {
       setError('All fields are required.');
       return;

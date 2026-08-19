@@ -47,7 +47,7 @@ const register = async (req, res, next) => {
     }
 
     // Email format validation
-    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
     if (!emailRegex.test(email.trim())) {
       return res.status(400).json({ status: 'fail', message: 'Please provide a valid email address.' });
     }

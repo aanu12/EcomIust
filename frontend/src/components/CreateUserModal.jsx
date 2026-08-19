@@ -15,7 +15,7 @@ const CreateUserModal = ({ isOpen, onClose, onCreateSuccess }) => {
     e.preventDefault();
     setError(null);
 
-    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
     if (!formData.name.trim() || !formData.course.trim() || !formData.email.trim()) {
       setError('All fields (Name, Course, Email) are required.');
       return;

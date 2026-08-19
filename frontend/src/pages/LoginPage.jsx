@@ -72,36 +72,31 @@ const LoginPage = () => {
           maxWidth: '440px',
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
-          borderRadius: '16px',
+          borderRadius: '20px',
           padding: '2.5rem 2rem',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
           boxSizing: 'border-box'
         }}
       >
-        {/* Header */}
+        {/* Header with Official EcomIust Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div
+          <img
+            src="/logo.png"
+            alt="EcomIust Official Logo"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              marginBottom: '1rem'
+              width: '110px',
+              height: 'auto',
+              maxHeight: '110px',
+              objectFit: 'contain',
+              margin: '0 auto 1rem auto',
+              display: 'block'
             }}
-          >
-            E
-          </div>
-          <h1 style={{ margin: 0, fontSize: '1.625rem', fontWeight: 700, color: '#0f172a', letterSpacing: '-0.025em' }}>
+          />
+          <h1 style={{ margin: 0, fontSize: '1.625rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.025em' }}>
             Campus Marketplace
           </h1>
           <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
-            Sign in to access your student account
+            Sign in to access your verified student account
           </p>
         </div>
 

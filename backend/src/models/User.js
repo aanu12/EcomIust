@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address']
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/, 'Please provide a valid email address']
     },
     course: {
       type: String,
@@ -44,6 +44,17 @@ const userSchema = new mongoose.Schema(
         type: String,
         default: ''
       }
+    },
+    walletBalance: {
+      type: Number,
+      default: 0
+    },
+    paymentDetails: {
+      upiId: { type: String, default: '', trim: true },
+      bankAccountName: { type: String, default: '', trim: true },
+      accountNumber: { type: String, default: '', trim: true },
+      ifscCode: { type: String, default: '', trim: true },
+      bankName: { type: String, default: '', trim: true }
     },
     rejectionReason: {
       type: String,

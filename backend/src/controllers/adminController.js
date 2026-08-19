@@ -275,8 +275,10 @@ const sendCredentialEmail = async (req, res, next) => {
 
     return res.status(200).json({
       status: 'success',
-      message: `Credentials email dispatched successfully to ${user.email}`,
-      emailSent: true
+      message: sent
+        ? `Credentials email sent successfully to ${user.email}`
+        : `Password generated! (Cloud email delivery timed out. Please copy password above)`,
+      emailSent: !!sent
     });
   } catch (error) {
     next(error);

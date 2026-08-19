@@ -3,7 +3,6 @@ require('dotenv').config();
 
 /**
  * Creates Nodemailer Transporter with fallback between Port 465 (SSL) and Port 587 (STARTTLS)
- * to work seamlessly on both Cloud hosting (Render) and local networks.
  */
 const createTransporter = (preferredPort = 465) => {
   const user = (process.env.SMTP_USER || '').trim();
@@ -31,9 +30,9 @@ const createTransporter = (preferredPort = 465) => {
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    connectionTimeout: 5000, // 5 second connection timeout for fast fallback
+    greetingTimeout: 5000,
+    socketTimeout: 5000
   });
 };
 
@@ -46,7 +45,7 @@ const verifySMTP = async () => {
 
   console.log(`📧 Verifying SMTP Transporter for ${user}...`);
 
-  // 1. Try Port 465 SSL first
+  // 1. Try Port 465 SSL
   try {
     const t465 = createTransporter(465);
     await t465.verify();
@@ -63,16 +62,67 @@ const verifySMTP = async () => {
     console.log('✅ SMTP Transporter verified successfully via Port 587 STARTTLS!');
     return true;
   } catch (err587) {
-    console.error(`🚨 SMTP Transporter verification failed: ${err587.message}`);
+    console.warn(`⚠️ SMTP Transporter verification result: ${err587.message}`);
     return false;
   }
 };
 
 /**
- * Robust Email Dispatch with Port 465 -> Port 587 Fallback
+ * Robust Email Dispatch with HTTPS REST API support & Port Fallbacks
  */
 const sendEmail = async ({ to, subject, html, text }) => {
   const user = (process.env.SMTP_USER || '').trim();
+
+  // 1. HTTPS REST API: Resend Support (Zero raw socket blocks on cloud servers)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: process.env.SMTP_FROM || 'IUST Ecom <onboarding@resend.dev>',
+          to: [to],
+          subject: subject,
+          html: html || text
+        })
+      });
+      if (res.ok) {
+        console.log(`✅ Email dispatched to ${to} via Resend HTTPS API`);
+        return true;
+      }
+    } catch (errApi) {
+      console.warn(`Resend HTTPS API attempt failed: ${errApi.message}`);
+    }
+  }
+
+  // 2. HTTPS REST API: Brevo / Sendinblue Support
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: 'IUST Ecom', email: user || 'officialecommercestoreiust@gmail.com' },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html || text
+        })
+      });
+      if (res.ok) {
+        console.log(`✅ Email dispatched to ${to} via Brevo HTTPS API`);
+        return true;
+      }
+    } catch (errBrevo) {
+      console.warn(`Brevo HTTPS API attempt failed: ${errBrevo.message}`);
+    }
+  }
+
   if (!user) {
     console.log(`[DRY RUN EMAIL] To: ${to} | Subject: ${subject}`);
     return false;
@@ -80,7 +130,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
 
   const from = process.env.SMTP_FROM || `"IUST Ecom" <${user}>`;
 
-  // Attempt 1: Port 465 SSL (Preferred for Render Cloud)
+  // 3. Nodemailer Attempt 1: Port 465 SSL
   try {
     const t465 = createTransporter(465);
     const info = await t465.sendMail({ from, to, subject, text, html });
@@ -90,7 +140,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     console.warn(`Port 465 email dispatch attempt failed (${err465.message}), attempting Port 587 STARTTLS fallback...`);
   }
 
-  // Attempt 2: Port 587 STARTTLS Fallback
+  // 4. Nodemailer Attempt 2: Port 587 STARTTLS
   try {
     const t587 = createTransporter(587);
     const info = await t587.sendMail({ from, to, subject, text, html });

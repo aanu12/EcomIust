@@ -15,7 +15,7 @@ import {
 } from './Icons';
 
 const Navbar = () => {
-  const { user, logoutUser, API_URL } = useContext(AuthContext);
+  const { user, token, logoutUser, API_URL } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,11 +27,12 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch Cart Count
+  // Fetch Cart Count safely with AuthContext token
   useEffect(() => {
-    if (!user) return;
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!user || !token) {
+      setCartCount(0);
+      return;
+    }
 
     fetch(`${API_URL}/cart`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -44,7 +45,7 @@ const Navbar = () => {
         }
       })
       .catch(() => {});
-  }, [API_URL, user]);
+  }, [API_URL, user, token]);
 
   const handleNavClick = (path) => {
     setIsMenuOpen(false);

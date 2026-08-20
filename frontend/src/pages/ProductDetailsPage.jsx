@@ -98,8 +98,9 @@ const ProductDetailsPage = () => {
   const images = product.images && product.images.length > 0 ? product.images : [{ url: 'https://via.placeholder.com/600' }];
   const currentImage = images[selectedImageIndex] || images[0];
 
-  const sellerId = product.seller ? (typeof product.seller === 'object' ? product.seller._id : product.seller) : null;
-  const isOwnProduct = user && sellerId && sellerId.toString() === user._id.toString();
+  const currentUserId = user ? (user._id || user.id)?.toString() : null;
+  const productSellerId = product?.seller ? (typeof product.seller === 'object' ? (product.seller._id || product.seller.id) : product.seller)?.toString() : null;
+  const isOwnProduct = Boolean(currentUserId && productSellerId && currentUserId === productSellerId);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a', display: 'flex', flexDirection: 'column', paddingBottom: isMobile ? '80px' : '2rem' }}>
